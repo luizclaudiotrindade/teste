@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exemplo de Integração - VLibras + Web Speech API</title>
+    <style>
+        /* Estilos básicos para o exemplo */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .voice-widget {
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f8f9fa;
+        }
+        
+        .record-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        
+        .record-button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .record-button.recording {
+            background: #dc3545;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .transcript-area {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 100px;
+            margin: 15px 0;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        .action-buttons {
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background: #218838;
+        }
+        
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            text-align: center;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .status.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.recording {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .language-selector {
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .language-selector select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .code-example {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        
+        .integration-note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Exemplo de Integração: Voz para Libras</h1>
+        
+        <p>Este é um exemplo simplificado de como integrar reconhecimento de voz com VLibras em seu projeto.</p>
+        
+        <!-- Widget de Voz para Libras -->
+        <div class="voice-widget">
+            <h3>Widget de Reconhecimento de Voz</h3>
+            
+            <div class="language-selector">
+                <label for="language">Idioma: </label>
+                <select id="language">
+                    <option value="pt-BR">Português (Brasil)</option>
+                    <option value="en-US">English (US)</option>
+                    <option value="es-ES">Español</option>
+                </select>
+            </div>
+            
+            <div class="status ready" id="status">Pronto para gravar</div>
+            
+            <div style="text-align: center;">
+                <button class="record-button" id="recordBtn">
+                    🎤 Clique para Falar
+                </button>
+            </div>
+            
+            <div class="transcript-area" id="transcript">
+                O texto transcrito aparecerá aqui...
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn" id="clearBtn">🗑️ Limpar</button>
+                <button class="btn" id="sendToVlibras" disabled>👋 Enviar para Libras</button>
+            </div>
+        </div>
+        
+        <!-- Instruções de Integração -->
+        <div class="integration-note">
+            <h3>📋 Como Integrar em Seu Projeto</h3>
+            <p>Para usar este widget em seu projeto, siga os passos abaixo:</p>
+        </div>
+        
+        <h3>1. Inclua o VLibras no seu HTML:</h3>
+        <div class="code-example">
+&lt;!-- VLibras Widget --&gt;
+&lt;div vw class="enabled"&gt;
+    &lt;div vw-access-button class="active"&gt;&lt;/div&gt;
+    &lt;div vw-plugin-wrapper&gt;
+        &lt;div class="vw-plugin-top-wrapper"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script src="https://vlibras.gov.br/app/vlibras-plugin.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+&lt;/script&gt;
+        </div>
+        
+        <h3>2. Implemente o reconhecimento de voz:</h3>
+        <div class="code-example">
+// Configurar Web Speech API
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+recognition.continuous = true;
+recognition.interimResults = true;
+recognition.lang = 'pt-BR';
+
+// Processar resultados
+recognition.onresult = function(event) {
+    let transcript = '';
+    for (let i = event.resultIndex; i &lt; event.results.length; ++i) {
+        transcript += event.results[i][0].transcript;
+    }
+    document.getElementById('transcript').textContent = transcript;
+};
+
+// Iniciar reconhecimento
+function startRecording() {
+    recognition.start();
+}
+        </div>
+        
+        <h3>3. Integre com VLibras:</h3>
+        <div class="code-example">
+function sendToVLibras(text) {
+    // Criar elemento temporário com o texto
+    const tempElement = document.createElement('div');
+    tempElement.textContent = text;
+    tempElement.setAttribute('vw', '');
+    tempElement.style.position = 'absolute';
+    tempElement.style.left = '-9999px';
+    
+    // Adicionar ao DOM e simular clique
+    document.body.appendChild(tempElement);
+    tempElement.click();
+    
+    // Remover após um tempo
+    setTimeout(() => {
+        document.body.removeChild(tempElement);
+    }, 1000);
+}
+        </div>
+        
+        <div class="integration-note">
+            <h4>⚠️ Requisitos Importantes:</h4>
+            <ul>
+                <li><strong>HTTPS:</strong> Necessário para Web Speech API</li>
+                <li><strong>Permissões:</strong> Usuário deve permitir acesso ao microfone</li>
+                <li><strong>Navegadores:</strong> Melhor suporte no Chrome e Firefox</li>
+                <li><strong>Internet:</strong> Conexão necessária para VLibras e reconhecimento</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- VLibras Widget (Integração Real) -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
+    </script>
+
+    <script>
+        // Implementação do exemplo
+        class SimpleVoiceToLibras {
+            constructor() {
+                this.recognition = null;
+                this.isRecording = false;
+                this.transcript = '';
+                
+                this.initElements();
+                this.setupSpeechRecognition();
+                this.setupEventListeners();
+            }
+            
+            initElements() {
+                this.recordBtn = document.getElementById('recordBtn');
+                this.transcriptArea = document.getElementById('transcript');
+                this.statusDiv = document.getElementById('status');
+                this.languageSelect = document.getElementById('language');
+                this.clearBtn = document.getElementById('clearBtn');
+                this.sendBtn = document.getElementById('sendToVlibras');
+            }
+            
+            setupSpeechRecognition() {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                
+                if (!SpeechRecognition) {
+                    this.showError('Navegador não suporta reconhecimento de voz');
+                    return;
+                }
+                
+                this.recognition = new SpeechRecognition();
+                this.recognition.continuous = true;
+                this.recognition.interimResults = true;
+                this.recognition.lang = this.languageSelect.value;
+                
+                this.recognition.onstart = () => {
+                    this.isRecording = true;
+                    this.updateUI();
+                };
+                
+                this.recognition.onresult = (event) => {
+                    let finalTranscript = '';
+                    let interimTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript + ' ';
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    this.transcript = finalTranscript;
+                    this.displayTranscript(finalTranscript, interimTranscript);
+                    this.updateSendButton();
+                };
+                
+                this.recognition.onerror = (event) => {
+                    this.showError('Erro: ' + event.error);
+                    this.isRecording = false;
+                    this.updateUI();
+                };
+                
+                this.recognition.onend = () => {
+                    this.isRecording = false;
+                    this.updateUI();
+                };
+            }
+            
+            setupEventListeners() {
+                this.recordBtn.addEventListener('click', () => {
+                    if (this.isRecording) {
+                        this.stopRecording();
+                    } else {
+                        this.startRecording();
+                    }
+                });
+                
+                this.languageSelect.addEventListener('change', () => {
+                    if (this.recognition) {
+                        this.recognition.lang = this.languageSelect.value;
+                    }
+                });
+                
+                this.clearBtn.addEventListener('click', () => {
+                    this.clearTranscript();
+                });
+                
+                this.sendBtn.addEventListener('click', () => {
+                    this.sendToVLibras();
+                });
+            }
+            
+            startRecording() {
+                if (this.recognition) {
+                    try {
+                        this.recognition.start();
+                    } catch (error) {
+                        this.showError('Erro ao iniciar gravação');
+                    }
+                }
+            }
+            
+            stopRecording() {
+                if (this.recognition && this.isRecording) {
+                    this.recognition.stop();
+                }
+            }
+            
+            displayTranscript(final, interim) {
+                let html = '';
+                if (final) {
+                    html += `<span style="color: #000; font-weight: bold;">${final}</span>`;
+                }
+                if (interim) {
+                    html += `<span style="color: #666; font-style: italic;">${interim}</span>`;
+                }
+                
+                this.transcriptArea.innerHTML = html || 'O texto transcrito aparecerá aqui...';
+            }
+            
+            clearTranscript() {
+                this.transcript = '';
+                this.transcriptArea.innerHTML = 'O texto transcrito aparecerá aqui...';
+                this.updateSendButton();
+                this.showStatus('Texto limpo', 'ready');
+            }
+            
+            sendToVLibras() {
+                if (!this.transcript.trim()) {
+                    this.showError('Nenhum texto para enviar');
+                    return;
+                }
+                
+                try {
+                    const tempElement = document.createElement('div');
+                    tempElement.textContent = this.transcript.trim();
+                    tempElement.setAttribute('vw', '');
+                    tempElement.style.position = 'absolute';
+                    tempElement.style.left = '-9999px';
+                    
+                    document.body.appendChild(tempElement);
+                    tempElement.click();
+                    
+                    setTimeout(() => {
+                        if (tempElement.parentNode) {
+                            tempElement.parentNode.removeChild(tempElement);
+                        }
+                    }, 1000);
+                    
+                    this.showStatus('Texto enviado para VLibras!', 'ready');
+                    
+                } catch (error) {
+                    this.showError('Erro ao enviar para VLibras');
+                }
+            }
+            
+            updateUI() {
+                if (this.isRecording) {
+                    this.recordBtn.textContent = '⏹️ Gravando...';
+                    this.recordBtn.classList.add('recording');
+                    this.showStatus('Gravando - Fale agora', 'recording');
+                } else {
+                    this.recordBtn.textContent = '🎤 Clique para Falar';
+                    this.recordBtn.classList.remove('recording');
+                    this.showStatus('Pronto para gravar', 'ready');
+                }
+            }
+            
+            updateSendButton() {
+                this.sendBtn.disabled = !this.transcript.trim();
+            }
+            
+            showStatus(message, type) {
+                this.statusDiv.textContent = message;
+                this.statusDiv.className = `status ${type}`;
+            }
+            
+            showError(message) {
+                this.showStatus(message, 'error');
+                setTimeout(() => {
+                    this.showStatus('Pronto para gravar', 'ready');
+                }, 3000);
+            }
+        }
+        
+        // Inicializar quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', () => {
+            new SimpleVoiceToLibras();
+        });
+    </script>
+</body>
+</html>

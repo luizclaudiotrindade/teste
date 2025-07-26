@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicação de Voz para Libras - VLibras</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1 class="title">
+                <span class="icon">🎤</span>
+                Voz para Libras
+            </h1>
+            <p class="subtitle">Fale no microfone e veja a tradução em Libras</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="recording-section">
+                    <button id="recordButton" class="record-btn" aria-label="Iniciar gravação">
+                        <span class="record-icon">🎤</span>
+                        <span class="record-text">Clique para falar</span>
+                    </button>
+                    <div class="recording-status" id="recordingStatus">
+                        <span class="status-text">Pronto para gravar</span>
+                    </div>
+                </div>
+
+                <!-- Language Selection -->
+                <div class="language-section">
+                    <label for="languageSelect" class="language-label">Idioma:</label>
+                    <select id="languageSelect" class="language-select">
+                        <option value="pt-BR">Português (Brasil)</option>
+                        <option value="en-US">English (US)</option>
+                        <option value="es-ES">Español</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Text Display -->
+            <div class="text-section">
+                <div class="text-container">
+                    <h2 class="section-title">Texto Transcrito</h2>
+                    <div id="transcriptionResult" class="transcription-result" aria-live="polite">
+                        <p class="placeholder-text">O texto transcrito aparecerá aqui...</p>
+                    </div>
+                    <div class="text-actions">
+                        <button id="clearText" class="action-btn clear-btn">
+                            <span>🗑️</span> Limpar Texto
+                        </button>
+                        <button id="sendToVlibras" class="action-btn send-btn">
+                            <span>👋</span> Enviar para Libras
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Messages -->
+            <div id="errorMessage" class="error-message" role="alert" style="display: none;">
+                <span class="error-icon">⚠️</span>
+                <span class="error-text"></span>
+            </div>
+
+            <!-- Instructions -->
+            <div class="instructions">
+                <h3>Como usar:</h3>
+                <ol>
+                    <li>Clique no botão do microfone para começar a gravar</li>
+                    <li>Fale claramente no microfone</li>
+                    <li>O texto será transcrito automaticamente</li>
+                    <li>Clique em "Enviar para Libras" para ver a tradução</li>
+                </ol>
+                <p class="note">
+                    <strong>Nota:</strong> Esta aplicação funciona melhor em navegadores modernos como Chrome, Firefox e Edge.
+                    É necessário permitir o acesso ao microfone quando solicitado.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- VLibras Widget Integration -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
