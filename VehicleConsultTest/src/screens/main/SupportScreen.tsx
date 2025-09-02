@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { RootStackParamList } from '../../types';
